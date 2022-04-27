@@ -22,7 +22,7 @@ chmod a+x bin/greedo
 ln -s bin/greedo /usr/local/bin/greedo
 ```
 
-Greedo assumes you are using Ubuntu server 18+.
+Greedo assumes you are using Ubuntu server 18+.  My dev server is setup similarly to how Trellis setups up a VM.
 
 Once installed, run the `greedo init` command to create a new project yml file.
 
