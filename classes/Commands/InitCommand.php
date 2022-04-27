@@ -82,8 +82,8 @@ class InitCommand extends GreedoCommand {
 		$config = [
 			'name' => $projectName,
 			'domain' => $projectDomain,
-			'public' => $publicDir,
-			'root' => $appDir,
+			'public_dir' => $publicDir,
+			'app_dir' => $appDir,
 			'php' => [
 				'version' => $phpVer,
 				'flags' => [
