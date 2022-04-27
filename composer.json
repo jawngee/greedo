@@ -1,0 +1,25 @@
+{
+    "name": "ilab/greedo",
+    "description": "Quickly setup PHP based sites on Nginx and PHP-FPM",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "ILAB\\Greedo\\": "classes/"
+        },
+        "files": [
+            "classes/functions.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Jon Gilkison",
+            "email": "jon@interfacelab.com"
+        }
+    ],
+    "bin": ["bin/greedo"],
+    "require": {
+        "symfony/console": "^5.1",
+        "duncan3dc/blade": "^4.11",
+        "symfony/yaml": "^5.4"
+    }
+}
