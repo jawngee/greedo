@@ -12,9 +12,13 @@ foreach ($files as $file) {
 	}
 }
 
+use ILAB\Greedo\Commands\BuildCommand;
 use ILAB\Greedo\Commands\InitCommand;
 use ILAB\Greedo\Commands\StartCommand;
 use ILAB\Greedo\Commands\StopCommand;
+use ILAB\Greedo\Commands\WPCommand;
+use ILAB\Greedo\Commands\ComposerCommand;
+use ILAB\Greedo\Commands\SSHCommand;
 use Symfony\Component\Console\Application;
 
 $root = trailingslashit(getcwd());
@@ -22,10 +26,20 @@ $root = trailingslashit(getcwd());
 $startCommand = new StartCommand(null, $root, __DIR__.'/..');
 $stopCommand = new StopCommand(null, $root, __DIR__.'/..');
 $initCommand = new InitCommand(null, $root, __DIR__.'/..');
+$buildCommand = new BuildCommand(null, $root, __DIR__.'/..');
+$wpCommand = new WPCommand(null, $root, __DIR__.'/..');
+$composerCommand = new ComposerCommand(null, $root, __DIR__.'/..');
+$sshCommand = new SSHCommand(null, $root, __DIR__.'/..');
 
 $application = new Application();
+$application->setName('Greedo');
+$application->setVersion('2.0.0');
 $application->add($initCommand);
+$application->add($buildCommand);
 $application->add($startCommand);
 $application->add($stopCommand);
+$application->add($wpCommand);
+$application->add($composerCommand);
+$application->add($sshCommand);
 $application->run();
 

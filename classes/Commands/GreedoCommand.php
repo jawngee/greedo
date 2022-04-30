@@ -19,24 +19,24 @@ abstract class GreedoCommand extends Command {
 		$this->greedoDir = trailingslashit($greedoDir);
 	}
 
-	protected function loadConfig(OutputInterface $output) {
+	protected function loadConfig(OutputInterface $output, $rootRequired = true) {
 		$greedoFile = $this->rootDir . 'greedo.yml';
 		if (!file_exists($greedoFile)) {
 			$output->writeln("<error>Greedo file not found at $greedoFile</error>");
 			return Command::FAILURE;
 		}
 
-		$userinfo = posix_getpwuid(posix_geteuid());
-		if ($userinfo['name'] !== 'root') {
-			$output->writeln("<error>You must run this command as root.</error>");
-			return Command::FAILURE;
+		if ($rootRequired) {
+			$userinfo = posix_getpwuid(posix_geteuid());
+			if ($userinfo['name'] !== 'root') {
+				$output->writeln("<error>You must run this command as root.</error>");
+				return Command::FAILURE;
+			}
 		}
 
 		$this->config = Yaml::parseFile($greedoFile);
-
-		$phpVer = arrayPath($this->config, 'php/version', '7.4');
-		if (!file_exists('/etc/php/'.$phpVer)) {
-			$output->writeln("<error>PHP version $phpVer not found.</error>");
+		if (arrayPath($this->config, 'version') !== 2) {
+			$output->writeln("<error>Invalid Greedo version.</error>");
 			return Command::FAILURE;
 		}
 

@@ -1,0 +1,53 @@
+version: 2
+
+name: sample
+domains:
+  - sample.local
+proxy: caddy
+
+services:
+  php:
+    version: '8.0'
+    app_dir: ./site/
+    public_dir:       # relative to app_dir
+    upload_limit: 512
+    port: 8081
+    mount:
+      - ./logs/php/:/var/logs/php/:rw
+    xdebug: true
+    composer: true
+    wpcli: true
+    extensions:
+      - xmlrpc
+      - mysqli
+      - zip
+      - gd
+      - bcmath
+      - opcache
+      - exif
+      - imagick
+      - redis
+      - memcache
+      - memcached
+      - vips
+      - oauth
+      - yaml
+    ini:
+      flags:
+        log_errors: On
+        display_errors: On
+      values:
+        error_log: /var/logs/php/error.log
+
+  db:
+    server: mariadb
+    name: sample
+    user: wordpress
+    password: password
+
+  redis:
+    version: 7
+
+  memcached:
+    mem: 64
+    port: 21211
