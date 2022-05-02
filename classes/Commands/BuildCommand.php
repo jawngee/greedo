@@ -8,6 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Process\Process;
 
 class BuildCommand extends GreedoCommand {
 	protected static $defaultName = 'build';
@@ -59,11 +60,9 @@ class BuildCommand extends GreedoCommand {
 
 		$hasPHP = !empty(arrayPath($this->config, 'services/php', null));
 		$appDir = arrayPath($this->config, 'services/php/app_dir');
-		if (strpos($appDir, DIRECTORY_SEPARATOR) !== 0) {
-			if (strpos($appDir, './') === 0) {
-				$appDir = '../../'.substr($appDir, 2);
-			}
-		}
+
+		$hasCron = !empty(arrayPath($this->config, 'services/cron', null));
+		$cronJobs = arrayPath($this->config, 'services/cron/jobs', []);
 
 		$publicDir = arrayPath($this->config, 'services/php/public_dir');
 		$uploadLimit = arrayPath($this->config, 'services/php/upload_limit', '32');
@@ -76,13 +75,7 @@ class BuildCommand extends GreedoCommand {
 		$installComposer = arrayPath($this->config, 'services/php/composer', false);
 		$installWPCLI = arrayPath($this->config, 'services/php/wpcli', false);
 		$mounts = arrayPath($this->config, 'services/php/mount', []);
-		array_walk($mounts, function(&$item) {
-			if (strpos($item, DIRECTORY_SEPARATOR) !== 0) {
-				if (strpos($item, './') === 0) {
-					$item = '../../'.substr($item, 2);
-				}
-			}
-		});
+		$installMysqlClient = arrayPath($this->config, 'services/php/mysql_client', false);
 
 		if ($xdebug) {
 			$extensions[] = 'xdebug';
@@ -121,9 +114,12 @@ class BuildCommand extends GreedoCommand {
 			'mounts' => $mounts,
 			'installComposer' => $installComposer,
 			'installWPCLI' => $installWPCLI,
+			'installMysqlClient' => $installMysqlClient,
+			'hasCron' => $hasCron,
+			'cronJobs' => $cronJobs,
 		];
 
-		$buildDir = trailingslashit($this->rootDir).'docker/'.$name.'/';
+		$buildDir = trailingslashit($this->rootDir).'docker/';
 		if (!file_exists($buildDir)) {
 			mkdir($buildDir, 0755, true);
 		}
@@ -131,22 +127,18 @@ class BuildCommand extends GreedoCommand {
 		if (arrayPath($this->config, 'proxy') === 'caddy') {
 			$output->write("<info>Generating Caddyfile ... </info>");
 			$caddy = $blade->render('caddyfile', $data);
-			file_put_contents($buildDir."Caddyfile", $caddy);
+			file_put_contents($this->rootDir."Caddyfile", $caddy);
 			$output->writeln("<options=bold>Done</>");
 		}
 
 		$output->write("<info>Generating docker-compose.yml ... </info>");
 		$compose = $blade->render('docker-compose', $data);
-		file_put_contents($buildDir."docker-compose.yml", $compose);
+		file_put_contents($this->rootDir."docker-compose.yml", $compose);
 		$output->writeln("<options=bold>Done</>");
 
 		$output->write("<info>Generating PHP-FPM Dockerfile ... </info>");
-		$fpmDockerDir = $buildDir . 'phpfpm/';
-		if (!file_exists($fpmDockerDir)) {
-			mkdir($fpmDockerDir, 0755, true);
-		}
 		$fpmDocker = $blade->render('phpfpm-dockerfile', $data);
-		file_put_contents($fpmDockerDir."Dockerfile", $fpmDocker);
+		file_put_contents($buildDir."phpfpm-Dockerfile", $fpmDocker);
 		$output->writeln("<options=bold>Done</>");
 
 		$output->write("<info>Generating NGINX config ... </info>");
@@ -158,6 +150,7 @@ class BuildCommand extends GreedoCommand {
 		file_put_contents($nginxConfigDir."default.conf", $nginx);
 		$output->writeln("<options=bold>Done</>");
 
+
 		$output->write("<info>Generating PHP-FPM config ... </info>");
 		$fpmConfigDir = $buildDir . 'conf/php-fpm/';
 		if (!file_exists($fpmConfigDir)) {
@@ -167,21 +160,56 @@ class BuildCommand extends GreedoCommand {
 		file_put_contents($fpmConfigDir."www.conf", $fpm);
 		$output->writeln("<options=bold>Done</>");
 
-		if ($hasPHP) {
-			if ($io->ask("Do you want to rebuild the PHP-FPM Docker image?")) {
-				if (!function_exists('pcntl_exec')) {
-					$output->writeln("<error>PHP extension 'pcntl' is not installed.</error>");
-					return Command::FAILURE;
-				}
+		if ($hasCron) {
+			$output->write("<info>Generating cron config ... </info>");
+			$cronConfigDir = $buildDir . 'cron/';
+			if (!file_exists($cronConfigDir)) {
+				mkdir($cronConfigDir, 0755, true);
+			}
+			file_put_contents($cronConfigDir."crontab.txt", implode("\n", $cronJobs));
 
+			$cronEntry = $blade->render('cron-entry-sh', $data);
+			file_put_contents($cronConfigDir.'entry.sh', $cronEntry);
+
+			$cronDocker = $blade->render('cron-dockerfile', $data);
+			file_put_contents($buildDir."cron-Dockerfile", $cronDocker);
+
+			$output->writeln("<options=bold>Done</>");
+		}
+
+		if ($hasPHP) {
+			if ($io->confirm("Do you want to rebuild the PHP-FPM Docker image?", false)) {
 				$docker = rtrim(`which docker`);
 				if (empty($docker)) {
 					$output->writeln("<error>Docker not found.</error>");
 					return Command::FAILURE;
 				}
 
-				chdir($buildDir);
-				pcntl_exec($docker, ["compose", "build", "--no-cache"]);
+				$process = new Process([$docker, "compose", "build", "{$name}_php", "--no-cache"]);
+				$process->setTimeout(PHP_INT_MAX);
+				$process->run(function($type, $buffer) use ($output) {
+					$output->write($buffer);
+				});
+				$output->writeln('');
+//				echo `$docker compose build {$name}_php --no-cache`;
+			}
+		}
+
+		if ($hasCron) {
+			if ($io->confirm("Do you want to rebuild the cron Docker image?", false)) {
+				$docker = rtrim(`which docker`);
+				if (empty($docker)) {
+					$output->writeln("<error>Docker not found.</error>");
+					return Command::FAILURE;
+				}
+
+				$process = new Process([$docker, "compose", "build", "{$name}_cron", "--no-cache"]);
+				$process->setTimeout(PHP_INT_MAX);
+				$process->run(function($type, $buffer) use ($output) {
+					$output->write($buffer);
+				});
+				$output->writeln('');
+//				echo `$docker compose build {$name}_cron --no-cache`;
 			}
 		}
 

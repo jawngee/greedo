@@ -197,6 +197,14 @@ class InitCommand extends GreedoCommand {
 			}
 		}
 
+
+		$io->section("Cron");
+		if ($io->confirm("Do you want to enable cron?")) {
+			$services['cron'] = [
+				'jobs' => []
+			];
+		}
+
 		$io->section("PHP Service");
 		if ($io->confirm("Do you want to enable PHP-FPM?")) {
 			$phpVer = $io->choice("PHP Version", ["7.4", "8.0", "8.1"]);
@@ -212,6 +220,7 @@ class InitCommand extends GreedoCommand {
 			$xdebug = $io->confirm("Do you want to enable XDebug?");
 			$composer = $io->confirm("Do you want to install Composer?");
 			$wpcli = $io->confirm("Do you want to install WP-CLI?");
+			$mysqlClient = $io->confirm("Do you want to install MySQL Client?");
 			$extensions = [];
 
 			if ($io->confirm("Do you want to define PHP extensions?")) {
@@ -236,6 +245,8 @@ class InitCommand extends GreedoCommand {
 						'zip',
 						'gd',
 						'bcmath',
+						'exif',
+						'intl',
 						'opcache',
 						'imagick',
 					];
@@ -247,6 +258,7 @@ class InitCommand extends GreedoCommand {
 						'bcmath',
 						'opcache',
 						'exif',
+						'intl',
 						'imagick',
 					];
 				} else {
@@ -268,6 +280,7 @@ class InitCommand extends GreedoCommand {
 				'composer' => $composer,
 				'wpcli' => $wpcli,
 				'extensions' => $extensions,
+				'mysql_client' => $mysqlClient,
 				'ini' => [
 					'flags' => [],
 					'values' => [],

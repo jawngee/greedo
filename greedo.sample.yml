@@ -9,7 +9,7 @@ services:
   php:
     version: '8.0'
     app_dir: ./site/
-    public_dir:       # relative to app_dir
+    public_dir:           # relative to app_dir
     upload_limit: 512
     port: 8081
     mount:
@@ -45,9 +45,17 @@ services:
     user: wordpress
     password: password
 
+
+  cron:
+    jobs:
+      - "*/1 * * * * curl http://sample.local/wp-cron.php?doing_wp_cron > /dev/null 2>&1"
+
   redis:
     version: 7
 
   memcached:
     mem: 64
     port: 21211
+
+  mailhog:
+    port: 8082

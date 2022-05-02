@@ -32,13 +32,6 @@ class WPCommand extends GreedoCommand {
 			return Command::FAILURE;
 		}
 
-		$buildDir = trailingslashit($this->rootDir).'docker/'.$name.'/';
-		if (!file_exists($buildDir)) {
-			$output->writeln("<error>Docker directory does not exist.</error>");
-			return Command::FAILURE;
-		}
-		chdir($buildDir);
-
 		$publicDir = arrayPath($this->config, 'services/php/public_dir');
 		$publicPath = untrailingslashit('/srv/www/'.$publicDir);
 

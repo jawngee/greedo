@@ -2,6 +2,10 @@ FROM php:{{$phpVer}}-fpm-alpine
 
 WORKDIR {{$publicPath}}
 
+@if($installMysqlClient)
+RUN apk add --no-cache mysql-client
+@endif
+
 @if(count($extensions) > 0)
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 

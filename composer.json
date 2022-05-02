@@ -21,6 +21,7 @@
         "symfony/console": "^5.1",
         "duncan3dc/blade": "^4.11",
         "symfony/yaml": "^5.4",
-        "ext-pcntl": "*"
+        "ext-pcntl": "*",
+        "symfony/process": "^5.4"
     }
 }

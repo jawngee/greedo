@@ -79,6 +79,9 @@ server {
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_buffers 16 16k;
         fastcgi_buffer_size 32k;
+@if(isset($phpValues['max_execution_time']))
+        fastcgi_read_timeout {{$phpValues['max_execution_time']}}s;
+@endif
         include fastcgi_params;
     }
 }

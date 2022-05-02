@@ -22,15 +22,7 @@ class StopCommand extends GreedoCommand {
 			return $result;
 		}
 
-		$name = arrayPath($this->config, 'name');
-		$buildDir = trailingslashit($this->rootDir).'docker/'.$name.'/';
-		if (!file_exists($buildDir)) {
-			$output->writeln("<error>Docker directory does not exist.</error>");
-			return Command::FAILURE;
-		}
-		chdir($buildDir);
-
-		$dockerFile = $buildDir.'docker-compose.yml';
+		$dockerFile = $this->rootDir.'docker-compose.yml';
 		if (!file_exists($dockerFile)) {
 			$output->writeln("<error>Could not find docker compose file.  Try running 'greedo build' first.</error>");
 			return Command::FAILURE;
@@ -38,7 +30,7 @@ class StopCommand extends GreedoCommand {
 
 		$this->updateHosts();
 
-		$caddyFile = $buildDir.'Caddyfile';
+		$caddyFile = $this->rootDir.'Caddyfile';
 		if (file_exists($caddyFile)) {
 			$output->writeln("<info>Stopping Caddy server...</info>");
 			switch(pcntl_fork()) {
@@ -61,8 +53,8 @@ class StopCommand extends GreedoCommand {
 			`$docker compose down`;
 			if ($input->getOption('delete-db')) {
 				$name = arrayPath($this->config, 'name');
-				$pathParts = explode(DIRECTORY_SEPARATOR, trim($buildDir, DIRECTORY_SEPARATOR));
-				$currentDir = array_pop($pathParts);
+				$pathParts = explode(DIRECTORY_SEPARATOR, trim($this->rootDir, DIRECTORY_SEPARATOR));
+				$currentDir = str_replace('.', '', array_pop($pathParts));
 				`$docker volume rm {$currentDir}_{$name}-db-volume`;
 			}
 		} else {

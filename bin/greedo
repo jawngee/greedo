@@ -14,6 +14,8 @@ foreach ($files as $file) {
 
 use ILAB\Greedo\Commands\BuildCommand;
 use ILAB\Greedo\Commands\InitCommand;
+use ILAB\Greedo\Commands\Recipes\AddRecipeCommand;
+use ILAB\Greedo\Commands\Recipes\UseRecipeCommand;
 use ILAB\Greedo\Commands\StartCommand;
 use ILAB\Greedo\Commands\StopCommand;
 use ILAB\Greedo\Commands\WPCommand;
@@ -31,6 +33,9 @@ $wpCommand = new WPCommand(null, $root, __DIR__.'/..');
 $composerCommand = new ComposerCommand(null, $root, __DIR__.'/..');
 $sshCommand = new SSHCommand(null, $root, __DIR__.'/..');
 
+$addRecipeCommand = new AddRecipeCommand(null, $root, __DIR__.'/..');
+$recipeCommand = new UseRecipeCommand(null, $root, __DIR__.'/..');
+
 $application = new Application();
 $application->setName('Greedo');
 $application->setVersion('2.0.0');
@@ -41,5 +46,7 @@ $application->add($stopCommand);
 $application->add($wpCommand);
 $application->add($composerCommand);
 $application->add($sshCommand);
+$application->add($recipeCommand);
+$application->add($addRecipeCommand);
 $application->run();
 

@@ -26,20 +26,7 @@ class ComposerCommand extends GreedoCommand {
 			return $result;
 		}
 
-
-
 		$name = arrayPath($this->config, 'name');
-		if (empty(arrayPath($this->config, 'services/php', null))) {
-			$output->writeln("<error>No PHP service configured for $name</error>");
-			return Command::FAILURE;
-		}
-
-		$buildDir = trailingslashit($this->rootDir).'docker/'.$name.'/';
-		if (!file_exists($buildDir)) {
-			$output->writeln("<error>Docker directory does not exist.</error>");
-			return Command::FAILURE;
-		}
-		chdir($buildDir);
 
 		$publicDir = arrayPath($this->config, 'services/php/public_dir');
 		$publicPath = untrailingslashit('/srv/www/'.$publicDir);

@@ -19,16 +19,7 @@ class StartCommand extends GreedoCommand {
 			return $result;
 		}
 
-		$name = arrayPath($this->config, 'name');
-		$buildDir = trailingslashit($this->rootDir).'docker/'.$name.'/';
-		if (!file_exists($buildDir)) {
-			$output->writeln("<error>Docker directory does not exist.</error>");
-			return Command::FAILURE;
-		}
-		chdir($buildDir);
-
-
-		$dockerFile = $buildDir.'docker-compose.yml';
+		$dockerFile = $this->rootDir.'docker-compose.yml';
 		if (!file_exists($dockerFile)) {
 			$output->writeln("<error>Could not find docker compose file.  Try running 'greedo build' first.</error>");
 			return Command::FAILURE;
@@ -36,7 +27,7 @@ class StartCommand extends GreedoCommand {
 
 		$this->updateHosts();
 
-		$caddyFile = $buildDir.'Caddyfile';
+		$caddyFile = $this->rootDir.'Caddyfile';
 		if (file_exists($caddyFile)) {
 			switch(pcntl_fork()) {
 				case 0:

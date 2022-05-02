@@ -71,15 +71,26 @@ services:
 @endif
 @endif
 
+@if($hasCron)
+  {{$name}}_cron:
+    container_name: {{$name}}_cron
+    build:
+      context: ./docker
+      dockerfile: cron-Dockerfile
+    networks:
+      - {{$name}}_network
+@endif
+
 @if($hasPHP)
   {{$name}}_php:
     container_name: {{$name}}_php
     build:
-      context: ./phpfpm
+      context: ./docker
+      dockerfile: phpfpm-Dockerfile
     image: {{$name}}_php:{{$phpVer}}
     volumes:
       - {{$appDir}}:/srv/www
-      - ./conf/php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./docker/conf/php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf
 @foreach($mounts as $mount)
       - {{$mount}}
 @endforeach
@@ -93,9 +104,16 @@ services:
       - {{$publicPort}}:80
     volumes:
       - {{$appDir}}:/srv/www
-      - ./conf/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/conf/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+@foreach($mounts as $mount)
+      - {{$mount}}
+@endforeach
     networks:
-      - {{$name}}_network
+      {{$name}}_network:
+        aliases:
+@foreach($domains as $domain)
+          - {{$domain}}
+@endforeach
     network_mode: bridged
     depends_on:
       - {{$name}}_php

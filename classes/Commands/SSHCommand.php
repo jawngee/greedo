@@ -31,13 +31,6 @@ class SSHCommand extends GreedoCommand {
 
 		$name = arrayPath($this->config, 'name');
 
-		$buildDir = trailingslashit($this->rootDir).'docker/'.$name.'/';
-		if (!file_exists($buildDir)) {
-			$output->writeln("<error>Docker directory does not exist.</error>");
-			return Command::FAILURE;
-		}
-		chdir($buildDir);
-
 		$dockerPs = `docker ps --all --no-trunc --format='{{json .}}'`;
 		$dockerPsLines = explode("\n", $dockerPs);
 		$instanceID = null;
