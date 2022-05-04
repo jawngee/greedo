@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Yaml;
 
 class BuildCommand extends GreedoCommand {
 	protected static $defaultName = 'build';
@@ -63,6 +64,7 @@ class BuildCommand extends GreedoCommand {
 
 		$hasCron = !empty(arrayPath($this->config, 'services/cron', null));
 		$cronJobs = arrayPath($this->config, 'services/cron/jobs', []);
+		$dockerDefs = arrayPath($this->config, 'docker');
 
 		$publicDir = arrayPath($this->config, 'services/php/public_dir');
 		$uploadLimit = arrayPath($this->config, 'services/php/upload_limit', '32');
@@ -133,6 +135,25 @@ class BuildCommand extends GreedoCommand {
 
 		$output->write("<info>Generating docker-compose.yml ... </info>");
 		$compose = $blade->render('docker-compose', $data);
+		if (!empty($dockerDefs)) {
+			$builtCompose = Yaml::parse($compose);
+			$dockerServices = arrayPath($dockerDefs, 'services', []);
+			foreach($dockerServices as $service => $def) {
+				$builtCompose['services'][$service] = $def;
+			}
+
+			$dockerVolumes = arrayPath($dockerDefs, 'volumes', []);
+			foreach($dockerVolumes as $volume => $def) {
+				$builtCompose['volumes'][$volume] = $def;
+			}
+
+			$dockerNetworks = arrayPath($dockerDefs, 'networks', []);
+			foreach($dockerNetworks as $network => $def) {
+				$builtCompose['networks'][$network] = $def;
+			}
+
+			$compose = Yaml::dump($builtCompose, PHP_INT_MAX, 2);
+		}
 		file_put_contents($this->rootDir."docker-compose.yml", $compose);
 		$output->writeln("<options=bold>Done</>");
 
