@@ -39,12 +39,14 @@ class BuildCommand extends GreedoCommand {
 		$dbName = null;
 		$dbUser = null;
 		$dbPassword = null;
+		$dbPort = null;
 		if ($hasDB) {
 			$dbServer = arrayPath($this->config, 'services/db/server');
 			$dbImage = arrayPath($this->config, 'services/db/image', $dbServer.':latest');
 			$dbName = arrayPath($this->config, 'services/db/name');
 			$dbUser = arrayPath($this->config, 'services/db/user');
 			$dbPassword = arrayPath($this->config, 'services/db/password');
+			$dbPort = arrayPath($this->config, 'services/db/port');
 			$hasDB = !empty($dbImage) && !empty($dbName) && !empty($dbUser) && !empty($dbPassword);
 		}
 
@@ -96,6 +98,7 @@ class BuildCommand extends GreedoCommand {
 			'dbName' => $dbName,
 			'dbUser' => $dbUser,
 			'dbPassword' => $dbPassword,
+			'dbPort' => $dbPort,
 			'appDir' => $appDir,
 			'publicPath' => $publicPath,
 			'hasDB' => $hasDB,
