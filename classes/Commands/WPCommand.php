@@ -53,12 +53,24 @@ class WPCommand extends GreedoCommand {
 			return Command::FAILURE;
 		}
 
-		$command = $input->getArgument('command to execute');
+		$commandInput = $input->getArgument('command to execute');
+		$command = [];
+		foreach($commandInput as $commandInputPart) {
+			if (strpos($commandInputPart, '+') === 0) {
+				$command[] = '--'.ltrim($commandInputPart, '+');
+			} else {
+				$command[] = $commandInputPart;
+			}
+		}
+
 		$docker = rtrim(`which docker`);
 		if (empty($docker)) {
 			$output->writeln("<error>Docker not found.</error>");
 			return Command::FAILURE;
 		}
+
+		$output->writeln("Executing: docker exec -it {$instanceID} wp --path={$publicPath} ".implode(' ', $command));
+
 		pcntl_exec($docker, array_merge(["exec", "-it", $instanceID, "wp", "--allow-root", "--path=$publicPath"], $command));
 
 		return Command::SUCCESS;
