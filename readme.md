@@ -3,7 +3,7 @@ Greedo
 
 Greedo is a pretty dumb command line tool to quickly spin up new PHP based projects in your local docker environment.
 
-Hitorically, I've always used [Trellis](https://roots.io/trellis) for most of my WordPress related projects, and then 
+Historically, I've always used [Trellis](https://roots.io/trellis) for most of my WordPress related projects, and then 
 Homestead for Laravel.  The problem with Trellis and related is the use of Vagrant and Vagrant's reliance on NFS for 
 file sharing.  NFS server on newer version of MacOS, in my experience, is very problematic.  I would get random lock ups
 in the vagrant VMs as NFS would inexplicably time out.  I'm not so married to vagrant that I wanted to spend the time
